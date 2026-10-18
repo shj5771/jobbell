@@ -31,6 +31,9 @@ app:
       discarding-threshold: 0
       never-block: false
       max-flush-time: 5000
+  sources:
+    greenhouse:
+      base-url: https://boards-api.greenhouse.io
 
 logging:
   level:
