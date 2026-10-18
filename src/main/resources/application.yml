@@ -31,6 +31,10 @@ app:
       discarding-threshold: 0
       never-block: false
       max-flush-time: 5000
+  # 수집 주기. 출처 정책상 10분보다 짧게 두지 않는다(설계서 6장). local 만 예외.
+  collect:
+    initial-delay: PT10S
+    interval: PT10M
   sources:
     greenhouse:
       base-url: https://boards-api.greenhouse.io

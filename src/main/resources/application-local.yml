@@ -9,6 +9,9 @@ spring:
 app:
   logging:
     env: local
+  # 가짜 출처라 외부 부담이 없다. 흐름을 빨리 보려고 1분.
+  collect:
+    interval: PT1M
   # 가짜 출처만 쓴다. broken·empty 는 조용한 실패를 재현하기 위한 예약 키다(FakePostingSource).
   catalog:
     companies:
