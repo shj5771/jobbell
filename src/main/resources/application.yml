@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: jobbell
+  profiles:
+    # 프로파일을 주지 않은 실행은 local 로 고정한다.
+    # 어느 환경도 아닌 네 번째 상태에서만 나는 버그를 만들지 않기 위해서다.
+    default: local
