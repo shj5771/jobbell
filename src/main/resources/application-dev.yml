@@ -7,6 +7,8 @@ spring:
     password: jobbell
 
 app:
+  discord:
+    register-commands: true
   logging:
     env: dev
     max-history: 3

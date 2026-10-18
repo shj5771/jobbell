@@ -8,6 +8,8 @@ spring:
     password: ${DB_PASSWORD}
 
 app:
+  discord:
+    register-commands: true
   logging:
     env: prod
     max-history: 30

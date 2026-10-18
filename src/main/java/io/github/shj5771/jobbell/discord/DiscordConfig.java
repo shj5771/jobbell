@@ -7,7 +7,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
+
+import java.net.http.HttpClient;
+import java.time.Duration;
 
 import java.time.Clock;
 
@@ -34,5 +41,32 @@ public class DiscordConfig {
         registration.setDispatcherTypes(DispatcherType.REQUEST);
         registration.addUrlPatterns(InteractionController.PATH);
         return registration;
+    }
+
+    /** 실제로 보내는 클라이언트는 dev/prod 뿐이다. local 은 어떤 토큰을 넣어도 보내지 않는다. */
+    @Bean
+    @Profile({"dev", "prod"})
+    public DiscordClient restDiscordClient(RestClient.Builder builder, DiscordProperties properties) {
+        if (properties.botToken() == null || properties.botToken().isBlank()) {
+            throw new IllegalStateException("app.discord.bot-token(DISCORD_BOT_TOKEN)이 비어 있다.");
+        }
+        Duration timeout = Duration.ofSeconds(10);
+        JdkClientHttpRequestFactory requestFactory =
+                new JdkClientHttpRequestFactory(HttpClient.newBuilder().connectTimeout(timeout).build());
+        requestFactory.setReadTimeout(timeout);
+        RestClient restClient = builder
+                .baseUrl(properties.apiBaseUrl())
+                .requestFactory(requestFactory)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bot " + properties.botToken())
+                // 디스코드는 이 형식의 User-Agent 를 요구한다.
+                .defaultHeader(HttpHeaders.USER_AGENT, "DiscordBot (https://github.com/shj5771/jobbell, 0.1)")
+                .build();
+        return new RestDiscordClient(restClient, properties.applicationId());
+    }
+
+    @Bean
+    @Profile("!dev & !prod")
+    public DiscordClient loggingDiscordClient() {
+        return new LoggingDiscordClient();
     }
 }
