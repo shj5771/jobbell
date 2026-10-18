@@ -11,6 +11,11 @@ app:
     env: dev
     max-history: 3
     total-size-cap: 1GB
+  # 실제 공개 API 로 확인한 보드만 둔다(2026-10-18 응답 200 확인).
+  catalog:
+    companies:
+      - { name: Discord, source: greenhouse, key: discord }
+      - { name: Airbnb, source: greenhouse, key: airbnb }
 
 logging:
   level:

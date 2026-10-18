@@ -9,6 +9,13 @@ spring:
 app:
   logging:
     env: local
+  # 가짜 출처만 쓴다. broken·empty 는 조용한 실패를 재현하기 위한 예약 키다(FakePostingSource).
+  catalog:
+    companies:
+      - { name: 가짜전자, source: fake, key: acme }
+      - { name: 가짜게임즈, source: fake, key: globex }
+      - { name: 장애상사, source: fake, key: broken }
+      - { name: 빈응답상사, source: fake, key: empty }
 
 logging:
   level:
