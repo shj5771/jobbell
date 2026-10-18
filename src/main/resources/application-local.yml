@@ -1,4 +1,11 @@
 # 개발 PC: 파일은 남기지 않는다. 콘솔로 내부 흐름까지 다 본다.
+spring:
+  datasource:
+    # compose.yaml 의 로컬 MySQL
+    url: jdbc:mysql://localhost:3307/jobbell
+    username: jobbell
+    password: jobbell
+
 app:
   logging:
     env: local

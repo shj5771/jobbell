@@ -7,11 +7,15 @@
 
 ## 실행
 
+Java 21 과 Docker 가 필요하다.
+
 ```bash
-./gradlew bootRun
+docker compose up -d   # 로컬 MySQL (호스트 포트 3307)
+./gradlew bootRun      # 프로파일을 주지 않으면 local
 ```
 
-Java 21 이 필요하다.
+스키마는 기동 시 Flyway 가 적용한다(`src/main/resources/db/migration`).
+테스트는 Testcontainers 로 MySQL 을 따로 띄우므로 `docker compose` 없이 `./gradlew test` 로 돈다.
 
 ## 라이선스
 

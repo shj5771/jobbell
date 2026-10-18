@@ -1,5 +1,12 @@
 # 운영: 우리 코드는 INFO, 프레임워크 소음은 WARN 이상만.
 # 장애 분석에 필요하니 30일 보관하되 파일 하나와 총량 양쪽으로 상한을 건다.
+spring:
+  datasource:
+    # 기본값을 두지 않는다. 하나라도 빠지면 기동이 실패해야 한다.
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
 app:
   logging:
     env: prod

@@ -1,0 +1,22 @@
+# 로컬 개발용 MySQL. 운영 DB 와 같은 메이저 버전(8.4)을 쓴다.
+# 호스트 포트는 3307 — 다른 프로젝트의 MySQL(3306)과 겹치지 않게.
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: jobbell
+      MYSQL_USER: jobbell
+      MYSQL_PASSWORD: jobbell
+      MYSQL_ROOT_PASSWORD: root
+      TZ: Asia/Seoul
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ujobbell", "-pjobbell"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  mysql-data:
