@@ -9,6 +9,9 @@ spring:
 app:
   logging:
     env: local
+  # local 은 디스코드 없이 curl 로 인터랙션을 흉내 낸다. 서명 검증은 local 에서만 끌 수 있다(DiscordStartupGuard).
+  discord:
+    verify-signature: false
   # 가짜 출처라 외부 부담이 없다. 흐름을 빨리 보려고 1분.
   collect:
     interval: PT1M

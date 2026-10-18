@@ -35,6 +35,16 @@ app:
   collect:
     initial-delay: PT10S
     interval: PT10M
+  # 비밀값은 환경변수로만 받는다. 저장소에는 .env.example 만 있다.
+  discord:
+    application-id: ${DISCORD_APPLICATION_ID:}
+    public-key: ${DISCORD_PUBLIC_KEY:}
+    bot-token: ${DISCORD_BOT_TOKEN:}
+    api-base-url: https://discord.com/api/v10
+    register-commands: false
+    verify-signature: true
+    # 운영 봇의 애플리케이션 ID(비밀이 아니다). prod 가 아닌데 이 ID 로 뜨면 기동을 막는다.
+    production-application-id: ""
   sources:
     greenhouse:
       base-url: https://boards-api.greenhouse.io
