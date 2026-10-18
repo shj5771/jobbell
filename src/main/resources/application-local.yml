@@ -1,0 +1,8 @@
+# 개발 PC: 파일은 남기지 않는다. 콘솔로 내부 흐름까지 다 본다.
+app:
+  logging:
+    env: local
+
+logging:
+  level:
+    io.github.shj5771.jobbell: DEBUG

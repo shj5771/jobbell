@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!--
+      환경별로 달라지는 값은 전부 application-{env}.yml 이 소유한다.
+      이 파일은 "어디에 어떤 모양으로 쓸지"(appender/encoder) 구조만 담는다.
+      레벨은 여기 적지 않는다. Boot 가 이 파일을 읽은 뒤에 logging.level.* 을 적용하므로 두 곳에 적으면 항상 yml 이 이긴다.
+    -->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="jobbell"/>
+    <springProperty scope="context" name="LOG_ENV" source="app.logging.env" defaultValue="local"/>
+    <springProperty scope="context" name="LOG_INSTANCE" source="app.logging.instance" defaultValue="unknown"/>
+    <springProperty scope="context" name="LOG_FILE" source="app.logging.file" defaultValue="logs/jobbell.log"/>
+    <springProperty scope="context" name="LOG_MAX_FILE_SIZE" source="app.logging.max-file-size" defaultValue="100MB"/>
+    <springProperty scope="context" name="LOG_MAX_HISTORY" source="app.logging.max-history" defaultValue="3"/>
+    <springProperty scope="context" name="LOG_TOTAL_SIZE_CAP" source="app.logging.total-size-cap" defaultValue="1GB"/>
+    <springProperty scope="context" name="ASYNC_QUEUE_SIZE" source="app.logging.async.queue-size" defaultValue="2048"/>
+    <springProperty scope="context" name="ASYNC_DISCARDING_THRESHOLD" source="app.logging.async.discarding-threshold" defaultValue="0"/>
+    <springProperty scope="context" name="ASYNC_NEVER_BLOCK" source="app.logging.async.never-block" defaultValue="false"/>
+    <springProperty scope="context" name="ASYNC_MAX_FLUSH_TIME" source="app.logging.async.max-flush-time" defaultValue="5000"/>
+
+    <!--
+      콘솔은 사람이 읽는다. 키 이름은 MdcKeys 와 문자열로만 이어지므로 MdcKeys 를 바꾸면 여기도 바꾼다.
+      traceId 가 비면 NO_TRACE 를 찍는다. 빈칸이면 "추적이 끊겼다" 와 "원래 없는 줄" 을 구분할 수 없다.
+    -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] [%X{traceId:-NO_TRACE}] [%X{runId:-}] [%X{postingId:-}] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 프로파일을 하나도 주지 않아도 최소한 콘솔에는 나온다. -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- 파일 로깅은 dev/prod 공통이다. 달라지는 것(보관 일수·총량)은 yml 에서 온다. -->
+    <springProfile name="dev | prod">
+
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_FILE}</file>
+            <!--
+              시간 기준만 쓰면 롤오버 트리거가 자정뿐이라 트래픽이 튀는 날 활성 파일 하나가 계속 커진다.
+              totalSizeCap 은 아카이브 합계만 보므로 활성 파일을 막지 못한다. 그래서 둘 다 건다.
+            -->
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+                <maxFileSize>${LOG_MAX_FILE_SIZE}</maxFileSize>
+                <maxHistory>${LOG_MAX_HISTORY}</maxHistory>
+                <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
+            </rollingPolicy>
+
+            <!-- 파일은 수집기가 읽는다. MDC 키는 LogstashEncoder 가 최상위 필드로 꺼낸다. -->
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <timeZone>Asia/Seoul</timeZone>
+                <!--
+                  배포 중에는 컨테이너 두 개가 같은 수집기로 쓴다. instance 가 없으면
+                  "같은 수집이 두 번 돌았다" 를 로그에서 구분할 수 없다.
+                -->
+                <customFields>{"service":"${APP_NAME}","env":"${LOG_ENV}","instance":"${LOG_INSTANCE}"}</customFields>
+                <includeContext>false</includeContext>
+            </encoder>
+        </appender>
+
+        <!-- 파일 쓰기는 디스크 I/O 다. 호출 스레드가 기다리지 않도록 큐에 던진다. -->
+        <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="FILE"/>
+            <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
+            <!-- 기본값은 queueSize/5 다. 큐 여유가 그 아래로 떨어지면 INFO·DEBUG 를 말없이 버린다. 0 으로 끈다. -->
+            <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>
+            <!-- 꽉 차면 버리지 말고 기다린다. 로그가 사라지는 것보다 조금 느린 편이 낫다. -->
+            <neverBlock>${ASYNC_NEVER_BLOCK}</neverBlock>
+            <!-- 종료 시 큐를 비우는 데 허용하는 시간. 기본값 1초는 2048건을 비우기에 빠듯하다. -->
+            <maxFlushTime>${ASYNC_MAX_FLUSH_TIME}</maxFlushTime>
+        </appender>
+
+        <root>
+            <appender-ref ref="ASYNC_FILE"/>
+        </root>
+    </springProfile>
+
+</configuration>

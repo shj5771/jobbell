@@ -5,3 +5,26 @@ spring:
     # 프로파일을 주지 않은 실행은 local 로 고정한다.
     # 어느 환경도 아닌 네 번째 상태에서만 나는 버그를 만들지 않기 위해서다.
     default: local
+
+# 로깅 설정의 소유권을 나눈다.
+#   application*.yml   — 레벨(무엇을 남길지), 파일 보관 정책 값
+#   logback-spring.xml — appender/encoder 구조(어디에 어떤 모양으로 쓸지)
+app:
+  logging:
+    env: local
+    # 컨테이너 안에서는 HOSTNAME 이 컨테이너 ID 다. 배포 중 두 컨테이너의 로그를 이것으로 가른다.
+    instance: ${HOSTNAME:local}
+    file: logs/jobbell.log
+    max-file-size: 100MB
+    max-history: 3
+    total-size-cap: 1GB
+    async:
+      queue-size: 2048
+      discarding-threshold: 0
+      never-block: false
+      max-flush-time: 5000
+
+logging:
+  level:
+    root: INFO
+    io.github.shj5771.jobbell: INFO
