@@ -42,3 +42,12 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// 배포 이미지는 실행 가능한 jar 하나만 담는다. 이름을 고정해 Dockerfile 이 버전을 몰라도 되게 한다.
+tasks.named('bootJar') {
+    archiveFileName = 'jobbell.jar'
+}
+
+tasks.named('jar') {
+    enabled = false
+}

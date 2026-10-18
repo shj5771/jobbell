@@ -13,8 +13,9 @@ services:
       - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    # mysqladmin ping 은 접속이 거부돼도 성공한다. 실제 계정으로 TCP 쿼리가 돌아야 healthy (deploy/compose.prod.yaml 참고).
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ujobbell", "-pjobbell"]
+      test: ["CMD-SHELL", "mysql -h 127.0.0.1 --protocol=tcp -ujobbell -pjobbell -e 'SELECT 1' >/dev/null 2>&1"]
       interval: 5s
       retries: 10
 

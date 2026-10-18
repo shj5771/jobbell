@@ -42,3 +42,7 @@ logs/
 
 ### 비밀값 — .env.example 만 커밋한다 ###
 .env
+
+### 서버에서만 생기는 배포 상태 ###
+deploy/.env
+deploy/.active-color

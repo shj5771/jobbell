@@ -1,0 +1,29 @@
+// 앱이 쓰는 JSON 로그(/logs/jobbell-<색>.log)를 읽어 Loki 로 보낸다.
+// 압축된 지난 파일(*.gz)은 읽지 않는다. 이미 보낸 내용이다.
+
+local.file_match "app" {
+  path_targets = [{"__path__" = "/logs/*.log"}]
+}
+
+loki.source.file "app" {
+  targets    = local.file_match.app.targets
+  forward_to = [loki.process.app.receiver]
+}
+
+// 라벨은 값의 종류가 적은 것만 단다. traceId·postingId 처럼 값이 매번 다른 것은 라벨로 만들면
+// Loki 인덱스가 터진다. 그런 값은 검색할 때 `| json | traceId="..."` 로 거른다.
+loki.process "app" {
+  stage.json {
+    expressions = { level = "level", env = "env", instance = "instance", service = "service" }
+  }
+  stage.labels {
+    values = { level = "", env = "", instance = "", service = "" }
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
