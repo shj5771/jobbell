@@ -2,6 +2,7 @@ package io.github.shj5771.jobbell.monitor;
 
 import io.github.shj5771.jobbell.notify.Notification;
 import io.github.shj5771.jobbell.notify.NotificationRepository;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,7 @@ public class PendingMonitor {
     }
 
     @Scheduled(initialDelayString = "PT5M", fixedDelayString = "PT5M")
+    @SchedulerLock(name = "monitor-pending-notifications", lockAtMostFor = "PT2M")
     public void check() {
         int stuck = notifications.findByStatusAndCreatedAtBefore(
                 Notification.Status.PENDING, clock.instant().minus(THRESHOLD)).size();

@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  * <p>테스트마다 자기가 쓰는 테이블만 지우게 했더니, 다른 테스트가 남긴 발송 행이
  * 외래 키로 공고를 붙잡아 공고 삭제가 실패했다. 순서는 외래 키의 역순이다. 카탈로그(company)는 남긴다.
+ * 스케줄 락(shedlock)은 지우지 않고 풀어준다.
  */
 public final class Database {
 
@@ -17,6 +18,9 @@ public final class Database {
         for (String table : TABLES_CHILD_FIRST) {
             jdbc.update("DELETE FROM " + table);
         }
+        // 락 행은 지우지 않고 푼다. ShedLock 은 한 번 넣은 락 이름을 기억해 두고 다음부터 UPDATE 만 하는데,
+        // 행을 지우면 그 UPDATE 가 0행이 되어 "락을 못 잡았다" 로 보고 작업을 계속 건너뛴다.
+        jdbc.update("UPDATE shedlock SET lock_until = '2000-01-01 00:00:00'");
     }
 
     private Database() {

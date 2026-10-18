@@ -2,6 +2,7 @@ package io.github.shj5771.jobbell.notify;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,7 @@ public class PendingNotificationSweeper {
     }
 
     @Scheduled(initialDelayString = "PT1M", fixedDelayString = "PT1M")
+    @SchedulerLock(name = "sweep-pending-notifications", lockAtMostFor = "PT5M")
     public void sweep() {
         List<Notification> stale = notifications.findByStatusAndCreatedAtBefore(
                 Notification.Status.PENDING, clock.instant().minus(GRACE));
