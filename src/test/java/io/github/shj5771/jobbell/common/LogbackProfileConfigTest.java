@@ -91,8 +91,7 @@ class LogbackProfileConfigTest {
         return new SpringApplicationBuilder(LoggingOnly.class)
                 .web(WebApplicationType.NONE)
                 .profiles(profiles)
-                .properties("app.logging.file=" + logDir.resolve("jobbell.log"))
-                .run();
+                .run("--app.logging.file=" + logDir.resolve("jobbell.log"));
     }
 
     private Logger root() {

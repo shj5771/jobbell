@@ -21,12 +21,22 @@
     <springProperty scope="context" name="ASYNC_MAX_FLUSH_TIME" source="app.logging.async.max-flush-time" defaultValue="5000"/>
 
     <!--
+      비밀값 마스킹. 봇 토큰(점 두 개로 나뉜 base64url 세 덩어리)과 웹훅 URL(경로에 웹훅 토큰이 들어 있다).
+      웹훅 호출이 실패하면 RestClient 예외 메시지에 그 URL 이 실리고, 그 예외를 ERROR 로 남긴다.
+      콘솔은 컨버터가, 파일(JSON)은 값 마스크가 가린다. 정규식은 여기 한 번만 적는다.
+    -->
+    <property scope="context" name="SECRET_REGEX"
+              value="[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]{25,}|https://(?:canary\.|ptb\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/[^\s&quot;']+"/>
+    <property scope="context" name="SECRET_MASK" value="[MASKED]"/>
+    <conversionRule conversionWord="maskedMsg" class="io.github.shj5771.jobbell.common.MaskingMessageConverter"/>
+
+    <!--
       콘솔은 사람이 읽는다. 키 이름은 MdcKeys 와 문자열로만 이어지므로 MdcKeys 를 바꾸면 여기도 바꾼다.
       traceId 가 비면 NO_TRACE 를 찍는다. 빈칸이면 "추적이 끊겼다" 와 "원래 없는 줄" 을 구분할 수 없다.
     -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] [%X{traceId:-NO_TRACE}] [%X{runId:-}] [%X{postingId:-}] %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] [%X{traceId:-NO_TRACE}] [%X{runId:-}] [%X{postingId:-}] %logger{36} - %maskedMsg{SECRET_REGEX,SECRET_MASK}%n</pattern>
         </encoder>
     </appender>
 
@@ -60,6 +70,17 @@
                 -->
                 <customFields>{"service":"${APP_NAME}","env":"${LOG_ENV}","instance":"${LOG_INSTANCE}"}</customFields>
                 <includeContext>false</includeContext>
+                <!--
+                  나가는 길목에서 한 번 더 막는다. 메시지·예외 문자열을 포함한 모든 값에 걸린다.
+                  logstash-logback-encoder 9.0 부터 요소 이름이 jsonGeneratorDecorator 가 아니라 decorator 다.
+                  옛 이름을 쓰면 경고 한 줄("Ignoring unknown property")만 남기고 마스킹 없이 기동한다.
+                -->
+                <decorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
+                    <valueMask>
+                        <value>${SECRET_REGEX}</value>
+                        <mask>${SECRET_MASK}</mask>
+                    </valueMask>
+                </decorator>
             </encoder>
         </appender>
 
