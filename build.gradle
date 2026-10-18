@@ -19,6 +19,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     // Boot 4 에서 RestClient.Builder 자동 설정이 별도 모듈로 나뉘었다. 출처·디스코드·운영 웹훅 호출이 모두 이걸 쓴다.
     implementation 'org.springframework.boot:spring-boot-starter-restclient'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

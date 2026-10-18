@@ -45,9 +45,23 @@ app:
     verify-signature: true
     # 운영 봇의 애플리케이션 ID(비밀이 아니다). prod 가 아닌데 이 ID 로 뜨면 기동을 막는다.
     production-application-id: ""
+  # 운영 경보용 디스코드 웹훅. 비면 로그로만 남긴다.
+  ops:
+    webhook-url: ${OPS_WEBHOOK_URL:}
   sources:
     greenhouse:
       base-url: https://boards-api.greenhouse.io
+
+# 헬스체크만 연다(Boot 기본값). 로그 레벨을 바꾸는 /actuator/loggers 같은 관리 기능은 열지 않는다.
+# 외부 감시가 보는 것은 상태(UP/DOWN)뿐이라 상세 정보는 숨긴다.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
 
 logging:
   level:

@@ -2,6 +2,7 @@ package io.github.shj5771.jobbell.notify;
 
 import io.github.shj5771.jobbell.common.MdcKeys;
 import io.github.shj5771.jobbell.common.MdcScope;
+import io.github.shj5771.jobbell.common.TraceIds;
 import io.github.shj5771.jobbell.discord.DiscordApiException;
 import io.github.shj5771.jobbell.discord.DiscordClient;
 import io.github.shj5771.jobbell.discord.RateLimitedException;
@@ -9,6 +10,7 @@ import io.github.shj5771.jobbell.guild.Guild;
 import io.github.shj5771.jobbell.guild.GuildRepository;
 import io.github.shj5771.jobbell.guild.MemberFilter;
 import io.github.shj5771.jobbell.guild.MemberFilterRepository;
+import io.github.shj5771.jobbell.monitor.OpsAlerter;
 import io.github.shj5771.jobbell.posting.Posting;
 import io.github.shj5771.jobbell.posting.PostingRepository;
 import org.slf4j.Logger;
@@ -41,17 +43,19 @@ public class NotificationSender {
     private final MemberFilterRepository filters;
     private final DiscordClient discord;
     private final TransactionTemplate transaction;
+    private final OpsAlerter alerter;
     private final Clock clock;
 
     public NotificationSender(NotificationRepository notifications, GuildRepository guilds, PostingRepository postings,
                               MemberFilterRepository filters, DiscordClient discord, TransactionTemplate transaction,
-                              Clock clock) {
+                              OpsAlerter alerter, Clock clock) {
         this.notifications = notifications;
         this.guilds = guilds;
         this.postings = postings;
         this.filters = filters;
         this.discord = discord;
         this.transaction = transaction;
+        this.alerter = alerter;
         this.clock = clock;
     }
 
@@ -120,6 +124,8 @@ public class NotificationSender {
         notification.failed();
         notifications.save(notification);
         log.error("알림 발송 포기({}회 실패): {}", notification.getAttempts(), e.getMessage(), e);
+        alerter.alert("notification-failed:" + notification.getId(), "알림 발송 포기(서버 " + notification.getGuildId()
+                + "). 추적 코드 " + TraceIds.shortCode(notification.getTraceId()) + " — " + e.getMessage());
         return true;
     }
 
