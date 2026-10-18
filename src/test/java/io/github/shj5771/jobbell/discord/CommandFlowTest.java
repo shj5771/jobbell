@@ -12,6 +12,7 @@ import io.github.shj5771.jobbell.posting.CatalogLoader;
 import io.github.shj5771.jobbell.posting.CollectService;
 import io.github.shj5771.jobbell.posting.Company;
 import io.github.shj5771.jobbell.posting.PostingRepository;
+import io.github.shj5771.jobbell.support.Database;
 import io.github.shj5771.jobbell.support.LogCapture;
 import io.github.shj5771.jobbell.support.MutableClock;
 import org.junit.jupiter.api.AfterEach;
@@ -75,10 +76,7 @@ class CommandFlowTest {
 
     @BeforeEach
     void setUp() {
-        for (String table : new String[]{"application", "notification", "member_filter", "guild_company", "guild",
-                "collect_run", "posting"}) {
-            jdbc.update("DELETE FROM " + table);
-        }
+        Database.clean(jdbc);
         logs = LogCapture.attachTo(InteractionDispatcher.class.getName());
     }
 

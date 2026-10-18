@@ -3,6 +3,7 @@ package io.github.shj5771.jobbell.posting;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import io.github.shj5771.jobbell.IntegrationTest;
 import io.github.shj5771.jobbell.common.MdcKeys;
+import io.github.shj5771.jobbell.support.Database;
 import io.github.shj5771.jobbell.support.LogCapture;
 import io.github.shj5771.jobbell.support.MutableClock;
 import org.junit.jupiter.api.AfterEach;
@@ -40,8 +41,7 @@ class CollectServiceTest {
 
     @BeforeEach
     void setUp() {
-        jdbc.update("DELETE FROM collect_run");
-        jdbc.update("DELETE FROM posting");
+        Database.clean(jdbc);
         logs = LogCapture.attachTo(CollectService.class.getName());
     }
 

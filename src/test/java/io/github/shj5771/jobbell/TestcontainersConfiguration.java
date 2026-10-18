@@ -1,6 +1,7 @@
 package io.github.shj5771.jobbell;
 
 import io.github.shj5771.jobbell.support.MutableClock;
+import io.github.shj5771.jobbell.support.RecordingDiscordClient;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +11,7 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.time.Instant;
 
-/** 테스트용 MySQL 과 시계. MySQL 은 compose.yaml 과 같은 버전을 쓴다. */
+/** 테스트용 MySQL·시계·디스코드 클라이언트. MySQL 은 compose.yaml 과 같은 버전을 쓴다. */
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 
@@ -24,5 +25,11 @@ public class TestcontainersConfiguration {
     @Primary
     MutableClock mutableClock() {
         return new MutableClock(Instant.now());
+    }
+
+    @Bean
+    @Primary
+    RecordingDiscordClient recordingDiscordClient() {
+        return new RecordingDiscordClient();
     }
 }
